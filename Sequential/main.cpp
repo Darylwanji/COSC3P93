@@ -14,6 +14,15 @@ int main() {
     return 0;
 }
 
+/*
+ * Finds the Euclidean distance between two given points.
+ *
+ * @param int x1[]     - Represents a Point containing x and y values
+ * @param int x2[]     - Represents a Point containing x and y values
+ * @param int sizeX1   - Contains the size of the array
+ *
+ * @return the sum of the differences of each x_i, y_i, ... value
+ * */
 int euclideanDist(int x1[], int x2[], int sizeX1) {
     int sum = 0;
     for (int index = 0; index < sizeX1; index++) {
