@@ -33,15 +33,15 @@ int main (){
 	display(read_dataset("Prostate_Cancer_dataset.csv"));
 
 
-	/*
+	
 	static float l []= {12,32,43,56,76,86,78,45};
 	static float c []= {22,34,54,24,42,53,43,54};
-	point p, q;
-	p.setFeatures(l);
-	q.setFeatures(c);
-	for(int i = 0; i <8;i++){
-		std::cout << p.getFeatures()[i] << std::endl;
-	}
-	*/
+    Point p(l);
+    Point q(c);
+    
+    for (int i = 0; i < 8; i++) {
+        std::cout << p.getCoords()[i] << std::endl;
+    }
+
 	return 0;
 }

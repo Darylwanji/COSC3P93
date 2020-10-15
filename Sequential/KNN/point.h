@@ -1,8 +1,12 @@
-class point {
+class Point {
+    private:
+       int size;
+       float *coords;
+
 	public:
-		float EuclideanDistance (point p, point q); 
-		void setFeatures(float*);
-		float* getFeatures();
-	private:
-		float* features;
-	};
+		float EuclideanDistance (Point p, Point q); 
+        float *getCoords();
+        Point(float *coordinates) {        
+            coords = coordinates;
+        }
+};
