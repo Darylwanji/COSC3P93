@@ -13,7 +13,7 @@ float Point::EuclideanDistance (Point q){
 	float EuclideanDistance = 0; 
     for (int index = 0; index < 8; index++) {
         float difference = coords[index] - q.getCoords()[index];
-        sum += pow(difference,2);
+        sum += (difference*difference);
     }
     EuclideanDistance = sqrt(sum);
     return EuclideanDistance;
