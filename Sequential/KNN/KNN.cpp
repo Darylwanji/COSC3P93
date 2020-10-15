@@ -30,7 +30,7 @@ void display (std::vector<std::vector<float> > data){
 
 int main (){
 
-	display(read_dataset("Prostate_Cancer_dataset.csv"));
+	//display(read_dataset("Prostate_Cancer_dataset.csv"));
 
 
 	
@@ -38,10 +38,13 @@ int main (){
 	static float c []= {22,34,54,24,42,53,43,54};
     Point p(l);
     Point q(c);
-    
+
+    float distance = p.EuclideanDistance(q);
     for (int i = 0; i < 8; i++) {
         std::cout << p.getCoords()[i] << std::endl;
     }
+            std::cout << " distance between p and q: " << distance << std::endl;
+
 
 	return 0;
 }

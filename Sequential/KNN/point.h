@@ -4,7 +4,7 @@ class Point {
        float *coords;
 
 	public:
-		float EuclideanDistance (Point p, Point q); 
+		float EuclideanDistance (Point q); 
         float *getCoords();
         Point(float *coordinates) {        
             coords = coordinates;
