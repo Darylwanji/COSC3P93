@@ -1,7 +1,6 @@
 
 K Nearest Neighbors PseudoCode
 
-
  - Calculate “d(x, xi)” i =1, 2, ….., n; where d denotes the Euclidean distance between the points.
  - Arrange the calculated n Euclidean distances in non-decreasing order.
  - Let k be a +ve integer, take the first k distances from this sorted list.
