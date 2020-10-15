@@ -1,4 +1,5 @@
 #include <iostream>
+#include <math.h>
 
 //Function prototypes
 int euclideanDist(int x1[], int x2[], int sizeX1);
@@ -14,5 +15,10 @@ int main() {
 }
 
 int euclideanDist(int x1[], int x2[], int sizeX1) {
-    return 0;
+    int sum = 0;
+    for (int index = 0; index < sizeX1; index++) {
+        int difference = x1[index] - x2[index];
+        sum += std::abs(difference);
+    }
+    return sum;
 }
