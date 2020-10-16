@@ -1,12 +1,11 @@
 class Point {
     private:
        int size;
-       float *coords;
+       float coords[10];
 
 	public:
 		float EuclideanDistance (Point q); 
         float *getCoords();
-        Point(float *coordinates) {        
-            coords = coordinates;
-        }
+        void printCoords();
+        void setCoords(float *row);
 };

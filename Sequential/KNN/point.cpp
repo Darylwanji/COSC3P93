@@ -1,4 +1,5 @@
 #include "point.h"
+#include <iostream>
 #include<cmath>
 
 /*
@@ -19,6 +20,12 @@ float Point::EuclideanDistance (Point q){
     return EuclideanDistance;
 }
 
+void Point::printCoords() {
+    for (int counter = 0; counter < 10; counter++) {
+        std::cout << coords[counter] << "\t";
+    }
+    std::cout << std::endl;
+}
 /*
  * Returns the features
 */
@@ -26,3 +33,8 @@ float *Point::getCoords(){
 	return coords;
 }
 
+void Point::setCoords(float *row) {
+    for (int i = 0; i < sizeof(this->coords)/sizeof(float); i++) {
+        this->coords[i] = row[i];
+    }
+}
