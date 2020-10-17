@@ -1,10 +1,12 @@
 #include "euclidean.h"
 #include <iostream>
 #include <fstream>
-#include <time.h> // Needed this to benchmark performance
+#include <sys/time.h>
 
+// TODO : Might wanna get 2 more values to check {3,5,7}
 //Defining the number of K distances to test against.
 int K = 3;
+
 
 //Function Prototypes
 void read_line(std::string line, float *row);
@@ -24,11 +26,19 @@ int main () {
     Point test_data[30];
     Point train_data[70];
 
+    struct timeval start, end;
+    float duration; 
+
+    std::cout << " Reading data..." << std::endl;
     read_data("Prostate_Cancer_dataset.csv", test_data, train_data);
+    std::cout << " Done reading data." << std::endl;
+
 
     Euclidean euclidean_dist_arr[70];
-    int pivot;
     
+    // time at start of classification
+    gettimeofday(&start, NULL);
+    std::ios_base::sync_with_stdio(false);
     // Loop over all of test_data in order to classify.
     for (int i = 0; i < 30; i++) {
         for (int j = 0; j < 70; j++) {
@@ -55,6 +65,13 @@ int main () {
      * - Find mode of the K entries
      */
     
+    // time at the enf of classification
+    gettimeofday(&end, NULL);
+    duration = (end.tv_sec - start.tv_sec) * 1e6; 
+    duration = (duration + (end.tv_usec - start.tv_usec)) * 1e-6;
+
+
+    std::cout << "Time taken for classification with " << 3 << " neighbors : " << duration << std::endl;
 	return 0;
 }
 
