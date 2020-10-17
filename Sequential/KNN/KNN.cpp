@@ -19,7 +19,10 @@ int main () {
     Point test_data[30];
     Point train_data[70];
 
+    std::cout << " Reading data..." << std::endl;
     read_data("Prostate_Cancer_dataset.csv", test_data, train_data);
+    std::cout << " Done reading data." << std::endl;
+
 
     Euclidean euclidean_dist_arr[70];
     
