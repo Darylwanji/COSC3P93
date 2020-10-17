@@ -1,7 +1,9 @@
 #include "point.h"
 #include <iostream>
 #include <fstream>
-#include <vector>
+
+//Defining the number of K distances to test against.
+#define K = 3;
 
 void read_line(std::string line, float *row) {
     int counter = 0;
@@ -32,32 +34,58 @@ void read_line(std::string line, float *row) {
     }
 }
 
-int main () {
-    // Read in dataset
-    std::ifstream inStream("Prostate_Cancer_dataset.csv");
+void read_data(std::string filename, Point *test_data, Point *train_data) {
+    std::ifstream inStream(filename);
     std::string line;
-    
-	float row[10];
-    Point points[100];
-    int count = 0;
 
+    float row[10];
+    int line_count = 0;
+    int test_index = 0;
+    int train_index = 0;
+    
     getline(inStream, line);
     line = "";
 
     if (inStream.is_open()) {
+
         while (getline(inStream, line, '\n')) {
             read_line(line, row);
-            points[count].setCoords(row);  
-            count++;
+
+            if (line_count < 30) {
+                test_data[test_index].setCoords(row);  
+                test_index++;
+            }
+            else if (line_count < 100) {
+                train_data[train_index].setCoords(row);  
+                train_index++;
+            }
+            line_count++;
         }
     }
     else {
         std::cout << "Failed" << std::endl;
     }
+}
 
-    // Print
-    for (int i = 0; i < 100; i++) {
-        points[i].printCoords();
+int main () {
+    // Read in dataset
+    std::ifstream inStream("Prostate_Cancer_dataset.csv");
+    std::string line;
+    
+    Point test_data[30];
+    Point train_data[70];
+
+    read_data("Prostate_Cancer_dataset.csv", test_data, train_data);
+
+    for (int i = 0; i < 30; i++) {
+        test_data[i].printCoords();
     }
+
+    for (int i = 0; i < 70; i++) {
+        train_data[i].printCoords();
+    }
+
+    float euclidean_dist_arr[30][2];
+    // Print
 	return 0;
 }
