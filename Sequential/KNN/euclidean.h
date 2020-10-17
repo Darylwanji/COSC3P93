@@ -7,10 +7,10 @@
  */
 class Euclidean {
     private:
-        int dist;
+        float dist;
         Point *ptr_point;
     public:
-        int getDistance();
+        float getDistance();
         Point *getPointer();
         
         void setValues(int distance, Point *point);

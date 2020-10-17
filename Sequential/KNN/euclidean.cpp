@@ -4,7 +4,7 @@
  * @params none
  * @returns the euclidean distance stored in the object value.
  */
-int Euclidean::getDistance() {
+float Euclidean::getDistance() {
     return this->dist;
 }
 

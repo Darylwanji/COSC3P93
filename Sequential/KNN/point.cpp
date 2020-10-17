@@ -57,3 +57,7 @@ void Point::setCoords(float *row) {
 void Point::setClassification(float value) {
     this->coords[1] = value;
 }
+
+int Point::getClassification() {
+    return this->coords[1];
+}

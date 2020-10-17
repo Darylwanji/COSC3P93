@@ -12,6 +12,7 @@ class Point {
 	public:
 		float EuclideanDistance (Point q); 
         float *getCoords();
+        int getClassification();
 
         void printCoords();
         void setCoords(float *row);

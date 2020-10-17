@@ -1,13 +1,18 @@
 #include "euclidean.h"
 #include <iostream>
 #include <fstream>
+#include <time.h> // Needed this to benchmark performance
 
 //Defining the number of K distances to test against.
-#define K = 3;
+int K = 3;
 
 //Function Prototypes
 void read_line(std::string line, float *row);
 void read_data(std::string filename, Point *test_data, Point *train_data);
+void quick_sort(Euclidean *distance_arr, int pivot, int size_of_arr); 
+void swap_numbers(Euclidean *distance_arr, int large_index, int small_index);
+
+int partition(Euclidean *distance_arr, int small, int big, int pivot);
 int mode(Euclidean euclidean_objs);
 
 int main () {
@@ -22,16 +27,46 @@ int main () {
     read_data("Prostate_Cancer_dataset.csv", test_data, train_data);
 
     Euclidean euclidean_dist_arr[70];
+    int pivot;
     
     // Loop over all of test_data in order to classify.
     for (int i = 0; i < 30; i++) {
         for (int j = 0; j < 70; j++) {
             euclidean_dist_arr[j].setValues(test_data[i].EuclideanDistance(train_data[j]), &train_data[j]);
         }
+
+        for (int k = 0; k < 70; k++) {
+            float dist = euclidean_dist_arr[k].getDistance();
+            std::cout << k << ": Distance: " << dist << std::endl;
+        }
+
+        quick_sort(euclidean_dist_arr, 0, 70);
+        
+        std::cout << "-------------------------------------------------------" << std::endl;
+        for (int k = 0; k < 70; k++) {
+            float dist = euclidean_dist_arr[k].getDistance();
+            std::cout << k << ": Distance: " << dist << std::endl;
+        }
+        break;
     }
+    /* TODO
+     * - Sort the distances - Quicksort algorithm.
+     * - Pick K entries.
+     * - Find mode of the K entries
+     */
+    
 	return 0;
 }
 
+/*
+ * This function emulates the split function in python. It takes
+ * a string passed in from the CSV file and builds an array delimited by commas.
+ *
+ * @param line A string variable delimited by commas
+ * @param row Float array to store the values from the line param.
+ *
+ * @returns none
+ */
 void read_line(std::string line, float *row) {
     int counter = 0;
     std::string temp;
@@ -109,10 +144,61 @@ void read_data(std::string filename, Point *test_data, Point *train_data) {
     }
 }
 
+int partition(Euclidean *euclidean_arr, int low, int high, float pivot) {
+    
+    while (low <= high) {
+        while (euclidean_arr[low].getDistance() < pivot) {
+            low++;
+        }
+        while (euclidean_arr[high].getDistance() > pivot) {
+            high--;
+        }
+        if (low <= high) {
+            swap_numbers(euclidean_arr, low, high);
+            low++;
+            high--;
+        }
+    }
+    return low;
+    
+}
+
+void quick_sort(Euclidean *euclidean_arr, int small, int big) {
+    
+    if (small < big) {
+
+        float pivot = euclidean_arr[(small+big)/2].getDistance(); 
+        int j = partition(euclidean_arr, small, big, pivot);
+
+        quick_sort(euclidean_arr, small, j-1);
+        quick_sort(euclidean_arr, j, big);
+
+    }
+}
+
+void swap_numbers(Euclidean *euclidean_arr, int large_index, int small_index) {
+
+    Euclidean temp = euclidean_arr[large_index];
+    euclidean_arr[large_index] = euclidean_arr[small_index];
+    euclidean_arr[small_index] = temp;
+}
+
 /*
  * @param euclidean_objs The euclidean objects to check the mode for.
  * @return the mode of classification.
  */
 int mode(Euclidean *euclidean_objs) {
-    return 0;
+    int benign = 0;
+    int malignant = 0;
+
+    for (int index = 0; index < K; index++) {
+        if (euclidean_objs->getPointer()->getClassification() == 0) {
+            malignant++;
+        }
+        else {
+            benign++;
+        }
+    }
+
+    return (malignant > benign) ? malignant : benign;
 }
