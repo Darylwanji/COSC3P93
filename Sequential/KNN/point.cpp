@@ -27,7 +27,17 @@ float Point::EuclideanDistance (Point q){
  */
 void Point::printCoords() {
     for (int counter = 0; counter < 10; counter++) {
-        std::cout << coords[counter] << "\t";
+		if (counter == 1) {
+			if (coords[counter] == 0) {
+				std::cout << "M" << "\t";
+			}
+			else {
+				std::cout << "B" << "\t";
+			}
+		}
+		else {
+        	std::cout << coords[counter] << "\t";
+		}
     }
     std::cout << std::endl;
 }

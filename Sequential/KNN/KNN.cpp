@@ -11,18 +11,17 @@ int K = 3;
 //Function Prototypes
 void read_line(std::string line, float *row);
 void read_data(std::string filename, Point *test_data, Point *train_data);
-void quick_sort(Euclidean *distance_arr, int pivot, int size_of_arr); 
-void swap_numbers(Euclidean *distance_arr, int large_index, int small_index);
+void quick_sort(Euclidean *euclidean_arr, int pivot, int size_of_arr); 
+void swap_numbers(Euclidean *euclidean_arr, int large_index, int small_index);
 
-int partition(Euclidean *distance_arr, int small, int big, int pivot);
-int mode(Euclidean euclidean_objs);
+int partition(Euclidean *euclidean_arr, int small, int big, int pivot);
+float mode(Euclidean *euclidean_arr);
 
 int main () {
     // Read in dataset
     std::ifstream inStream("Prostate_Cancer_dataset.csv");
     std::string line;
     
-    Point classified_results[30];
     Point test_data[30];
     Point train_data[70];
 
@@ -45,19 +44,15 @@ int main () {
             euclidean_dist_arr[j].setValues(test_data[i].EuclideanDistance(train_data[j]), &train_data[j]);
         }
 
-        for (int k = 0; k < 70; k++) {
-            float dist = euclidean_dist_arr[k].getDistance();
-            std::cout << k << ": Distance: " << dist << std::endl;
+        quick_sort(euclidean_dist_arr, 0, (sizeof(euclidean_dist_arr)/sizeof(Euclidean))-1);
+        Euclidean k_selections[K];
+        for (int index = 0; index < K; index++) {
+            k_selections[index] = euclidean_dist_arr[index];
         }
+        float classification = mode(k_selections);
+        test_data[i].setClassification(classification);
+        test_data[i].printCoords();
 
-        quick_sort(euclidean_dist_arr, 0, 70);
-        
-        std::cout << "-------------------------------------------------------" << std::endl;
-        for (int k = 0; k < 70; k++) {
-            float dist = euclidean_dist_arr[k].getDistance();
-            std::cout << k << ": Distance: " << dist << std::endl;
-        }
-        break;
     }
     /* TODO
      * - Sort the distances - Quicksort algorithm.
@@ -171,9 +166,7 @@ int partition(Euclidean *euclidean_arr, int low, int high, float pivot) {
             high--;
         }
         if (low <= high) {
-            swap_numbers(euclidean_arr, low, high);
-            low++;
-            high--;
+            swap_numbers(euclidean_arr, low++, high--);
         }
     }
     return low;
@@ -204,10 +197,10 @@ void swap_numbers(Euclidean *euclidean_arr, int large_index, int small_index) {
  * @param euclidean_objs The euclidean objects to check the mode for.
  * @return the mode of classification.
  */
-int mode(Euclidean *euclidean_objs) {
+float mode(Euclidean *euclidean_objs) {
     int benign = 0;
     int malignant = 0;
-
+    
     for (int index = 0; index < K; index++) {
         if (euclidean_objs->getPointer()->getClassification() == 0) {
             malignant++;
@@ -217,5 +210,5 @@ int mode(Euclidean *euclidean_objs) {
         }
     }
 
-    return (malignant > benign) ? malignant : benign;
+    return (malignant > benign) ? 0 : 1;
 }
