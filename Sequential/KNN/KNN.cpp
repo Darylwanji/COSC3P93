@@ -1,9 +1,36 @@
-#include "point.h"
+#include "euclidean.h"
 #include <iostream>
 #include <fstream>
 
 //Defining the number of K distances to test against.
 #define K = 3;
+
+//Function Prototypes
+void read_line(std::string line, float *row);
+void read_data(std::string filename, Point *test_data, Point *train_data);
+int mode(Euclidean euclidean_objs);
+
+int main () {
+    // Read in dataset
+    std::ifstream inStream("Prostate_Cancer_dataset.csv");
+    std::string line;
+    
+    Point classified_results[30];
+    Point test_data[30];
+    Point train_data[70];
+
+    read_data("Prostate_Cancer_dataset.csv", test_data, train_data);
+
+    Euclidean euclidean_dist_arr[70];
+    
+    // Loop over all of test_data in order to classify.
+    for (int i = 0; i < 30; i++) {
+        for (int j = 0; j < 70; j++) {
+            euclidean_dist_arr[j].setValues(test_data[i].EuclideanDistance(train_data[j]), &train_data[j]);
+        }
+    }
+	return 0;
+}
 
 void read_line(std::string line, float *row) {
     int counter = 0;
@@ -34,6 +61,20 @@ void read_line(std::string line, float *row) {
     }
 }
 
+/*
+ * This function is responsible for reading in the prostate dataset
+ * csv file and loading it into the respective arrays of test_data and
+ * train_data. In this case the first 30 points are used for testing and
+ * the remaining 70 are used for training the classification. The test data
+ * also has its classification removed by setting its value to 3 (0 is Malignant,
+ * 1 is Benign).
+ *
+ * @param filename A string value holding the name of the dataset.
+ * @param test_data A pointer to an array of Point objects
+ * @param train_data A pointer to an array of Point objects.
+ *
+ * @returns none
+ */
 void read_data(std::string filename, Point *test_data, Point *train_data) {
     std::ifstream inStream(filename);
     std::string line;
@@ -53,6 +94,7 @@ void read_data(std::string filename, Point *test_data, Point *train_data) {
 
             if (line_count < 30) {
                 test_data[test_index].setCoords(row);  
+                test_data[test_index].setClassification(3);
                 test_index++;
             }
             else if (line_count < 100) {
@@ -67,25 +109,10 @@ void read_data(std::string filename, Point *test_data, Point *train_data) {
     }
 }
 
-int main () {
-    // Read in dataset
-    std::ifstream inStream("Prostate_Cancer_dataset.csv");
-    std::string line;
-    
-    Point test_data[30];
-    Point train_data[70];
-
-    read_data("Prostate_Cancer_dataset.csv", test_data, train_data);
-
-    for (int i = 0; i < 30; i++) {
-        test_data[i].printCoords();
-    }
-
-    for (int i = 0; i < 70; i++) {
-        train_data[i].printCoords();
-    }
-
-    float euclidean_dist_arr[30][2];
-    // Print
-	return 0;
+/*
+ * @param euclidean_objs The euclidean objects to check the mode for.
+ * @return the mode of classification.
+ */
+int mode(Euclidean *euclidean_objs) {
+    return 0;
 }

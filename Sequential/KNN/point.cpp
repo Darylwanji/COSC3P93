@@ -5,9 +5,8 @@
 /*
  * Finds the Euclidean distance between two given points.
  *
- * @param Point q        - Represents a Point with 8 dimensions
- *
- * @return the EuclideanDistance between coords and point q
+ * @param q A point object representing a data point in the dataset.
+ * @returns the Euclidean Distance between this point object and point q
  * */
 float Point::EuclideanDistance (Point q){
 	float sum = 0;
@@ -20,21 +19,41 @@ float Point::EuclideanDistance (Point q){
     return EuclideanDistance;
 }
 
+/*
+ * This function prints the attributes in a table to standard out.
+ *
+ * @params none
+ * @returns none
+ */
 void Point::printCoords() {
     for (int counter = 0; counter < 10; counter++) {
         std::cout << coords[counter] << "\t";
     }
     std::cout << std::endl;
 }
+
 /*
- * Returns the features
+ * @param none
+ * @returns the attributes for the data point.
 */
 float *Point::getCoords(){
 	return coords;
 }
 
+/* 
+ * @param row A float array containing the values for a data point in the prostate cancer csv
+ * @returns none
+ */
 void Point::setCoords(float *row) {
     for (int i = 0; i < sizeof(this->coords)/sizeof(float); i++) {
         this->coords[i] = row[i];
     }
+}
+
+/*
+ * @param value A float value containing the classification (0 for M, 1 for B)
+ * @returns none
+ */
+void Point::setClassification(float value) {
+    this->coords[1] = value;
 }

@@ -1,3 +1,9 @@
+/*
+ * This class holds the attributes for every data point inside of the data set for,
+ * prostate cancer. It also has a function to calculate the euclidean distance in
+ * relation to itself with another data point.
+ */
+
 class Point {
     private:
        int size;
@@ -6,6 +12,8 @@ class Point {
 	public:
 		float EuclideanDistance (Point q); 
         float *getCoords();
+
         void printCoords();
         void setCoords(float *row);
+        void setClassification(float value);
 };
