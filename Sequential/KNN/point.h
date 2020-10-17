@@ -6,7 +6,6 @@
 
 class Point {
     private:
-       int size;
        float coords[10];
 
 	public:

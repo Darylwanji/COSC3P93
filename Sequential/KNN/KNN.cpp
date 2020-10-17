@@ -5,7 +5,7 @@
 
 // TODO : Might wanna get 2 more values to check {3,5,7}
 //Defining the number of K distances to test against.
-int K = 3;
+int K =3;
 
 
 //Function Prototypes
@@ -66,7 +66,7 @@ int main () {
     duration = (duration + (end.tv_usec - start.tv_usec)) * 1e-6;
 
 
-    std::cout << "Time taken for classification with " << 3 << " neighbors : " << duration << std::endl;
+    std::cout << "Time taken for classification with " <<  K << " neighbors : " << duration << std::endl;
 	return 0;
 }
 
@@ -198,7 +198,7 @@ void swap_numbers(Euclidean *euclidean_arr, int large_index, int small_index) {
  * @return the mode of classification.
  */
 float mode(Euclidean *euclidean_objs) {
-    int benign = 0;
+    int benign = 1;
     int malignant = 0;
     
     for (int index = 0; index < K; index++) {

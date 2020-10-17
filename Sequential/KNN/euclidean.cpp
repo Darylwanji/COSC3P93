@@ -22,7 +22,7 @@ Point *Euclidean::getPointer() {
  * @param point The pointer pointing to a Point object.
  * @returns none
  */
-void Euclidean::setValues(int distance, Point *point) {
+void Euclidean::setValues(float distance, Point *point) {
     this->dist = distance;
     this->ptr_point = point;
 }

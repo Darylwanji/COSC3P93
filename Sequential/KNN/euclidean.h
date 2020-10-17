@@ -13,5 +13,5 @@ class Euclidean {
         float getDistance();
         Point *getPointer();
         
-        void setValues(int distance, Point *point);
+        void setValues(float distance, Point *point);
 };
