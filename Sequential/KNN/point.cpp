@@ -11,7 +11,7 @@
 float Point::EuclideanDistance (Point q){
 	float sum = 0;
 	float EuclideanDistance = 0; 
-    for (int index = 0; index < 8; index++) {
+    for (int index = 2; index <=9; index++) {
         float difference = coords[index] - q.getCoords()[index];
         sum += (difference*difference);
     }

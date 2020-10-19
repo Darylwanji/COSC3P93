@@ -5,7 +5,7 @@
 
 // TODO : Might wanna get 2 more values to check {3,5,7}
 //Defining the number of K distances to test against.
-int K =3;
+int K = 5;
 
 
 //Function Prototypes
@@ -25,6 +25,7 @@ int main () {
     Point test_data[30];
     Point train_data[70];
 
+    // Execution time variables 
     struct timeval start, end;
     float duration; 
 
@@ -46,14 +47,23 @@ int main () {
 
         quick_sort(euclidean_dist_arr, 0, (sizeof(euclidean_dist_arr)/sizeof(Euclidean))-1);
         Euclidean k_selections[K];
+
+      //  std::cout << "distances are :"<<std::endl; 
+
+      //  for (int i =0; i < 70; i++){
+      //   std::cout << i << " : "<< euclidean_dist_arr[i].getDistance() << std::endl;
+      //  }
         for (int index = 0; index < K; index++) {
             k_selections[index] = euclidean_dist_arr[index];
+        //    std::cout << k_selections[index].getDistance() << std::endl;
         }
         float classification = mode(k_selections);
         test_data[i].setClassification(classification);
         test_data[i].printCoords();
-
     }
+    // DEBUG:
+    
+
     /* TODO
      * - Sort the distances - Quicksort algorithm.
      * - Pick K entries.
@@ -198,7 +208,7 @@ void swap_numbers(Euclidean *euclidean_arr, int large_index, int small_index) {
  * @return the mode of classification.
  */
 float mode(Euclidean *euclidean_objs) {
-    int benign = 1;
+    int benign = 0;
     int malignant = 0;
     
     for (int index = 0; index < K; index++) {
