@@ -1,3 +1,10 @@
+/*
+ * Name: Aditya Rajyaguru
+ * Student Number: 6582282
+ *
+ * Name: Brandon Daryl Wanji
+ * Student Number: 6151351
+ */
 #include "euclidean.h"
 #include <iostream>
 #include <fstream>
