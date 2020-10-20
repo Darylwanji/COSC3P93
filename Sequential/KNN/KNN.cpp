@@ -28,7 +28,7 @@ char mode(Euclidean *euclidean_arr);
 
 int main () {
     std::cout << " Please enter a number to choose a data-set" << std::endl;
-    std::cout << " 0: Prostate Cancer Data-set\n 1: Breast Cancer Data-set\n 2: Abalone Data-set 3-Letters Data-set"<<std::endl;
+    std::cout << " 0: Prostate Cancer Data-set\n 1: Breast Cancer Data-set\n 2: Abalone Data-set \n 3: Letters Data-set"<<std::endl;
     std::cin>> file_index;
     if (file_index >= 0 && file_index <= 3){
     std::cout << filenames[file_index] << std::endl;
