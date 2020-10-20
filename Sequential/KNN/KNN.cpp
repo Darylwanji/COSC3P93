@@ -34,11 +34,27 @@ int max(int a, int b);
 char mode(Euclidean *euclidean_arr);
 
 int main () {
+    
     std::cout << " Please enter a number to choose a data-set" << std::endl;
-    std::cout << " 0: Prostate Cancer Data-set\n 1: Breast Cancer Data-set\n 2: Abalone Data-set \n 3: Letters Data-set"<<std::endl;
-    std::cin>> file_index;
-    if (file_index >= 0 && file_index <= 3){
-    std::cout << filenames[file_index] << std::endl;
+    std::cout << "0: Prostate Cancer Data-set (100 data points)" << std::endl;
+    std::cout << "1: Breast Cancer Data-set (569 data points)" << std::endl;
+    std::cout << "2: Abalone Data-set (4177 data point))" << std::endl;
+    std::cout << "3: Letters Data-set (20000 data points)" << std::endl;
+    std::cout << "Any other key to quit." << std::endl;
+    std::cout << "Input: ";
+
+    char input;
+    std::cin >> input;
+    int check = input - '0';
+
+    if (check < 0 || check > 3) {
+        std::cerr << "Exiting." << std::endl;
+        return 0;
+    }
+    else {
+        file_index = check;
+    }
+
     switch(file_index) {
         case 0:
             test_data_size = 30;
@@ -112,10 +128,7 @@ int main () {
     duration = (end.tv_sec - start.tv_sec) * 1e6;
     duration = (duration + (end.tv_usec - start.tv_usec)) * 1e-6;
 
-    std::cout << "Time taken for classification with " <<  K << " neighbors : " << duration << std::endl;}
-    else{
-        std::cerr<< " Wrong Number " << std::endl;
-    }
+    std::cout << "Time taken for classification with " <<  K << " neighbors : " << duration << std::endl;
     return 0;
 
 } //End main
