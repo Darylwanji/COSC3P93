@@ -4,7 +4,7 @@
 #include <sys/time.h>
 
 std::string filenames[4] = {"datasets/Prostate_Cancer_dataset.csv", "datasets/Breast_Cancer_dataset.csv","datasets/abalone.csv", "datasets/letters.csv"};
-int file_index;// Change this to change which file to load
+int file_index; // Global var used for parsing
 
 //Global vars to be used for parsing a CSV
 int test_data_size;
@@ -28,7 +28,7 @@ char mode(Euclidean *euclidean_arr);
 
 int main () {
     std::cout << " Please enter a number to choose a data-set" << std::endl;
-    std::cout << " 0- Prostate Cancer Data-set  1- Breast Cancer Data-set 2- Abalone Data-set 3-Letters Data-set"<<std::endl;
+    std::cout << " 0: Prostate Cancer Data-set\n 1: Breast Cancer Data-set\n 2: Abalone Data-set 3-Letters Data-set"<<std::endl;
     std::cin>> file_index;
     if (file_index >= 0 && file_index <= 3){
     std::cout << filenames[file_index] << std::endl;
