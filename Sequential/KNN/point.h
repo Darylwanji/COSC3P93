@@ -6,14 +6,17 @@
 
 class Point {
     private:
-       float coords[10];
+       float coords[32];
+	   int size_of_coords;
+	   char classification = 'N'; //N = no classification
 
 	public:
 		float EuclideanDistance (Point q); 
         float *getCoords();
-        int getClassification();
+        char getClassification();
 
         void printCoords();
+		void setSize(int size);
         void setCoords(float *row);
-        void setClassification(float value);
+        void setClassification(char value);
 };
