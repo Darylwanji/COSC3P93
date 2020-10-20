@@ -4,7 +4,7 @@
 #include <sys/time.h>
 
 std::string filenames[4] = {"datasets/Prostate_Cancer_dataset.csv", "datasets/Breast_Cancer_dataset.csv","datasets/abalone.csv", "datasets/letters.csv"};
-int file_index = 3; // Change this to change which file to load
+int file_index;// Change this to change which file to load
 
 //Global vars to be used for parsing a CSV
 int test_data_size;
@@ -27,6 +27,10 @@ int max(int a, int b);
 char mode(Euclidean *euclidean_arr);
 
 int main () {
+    std::cout << " Please enter a number to choose a data-set" << std::endl;
+    std::cout << " 0- Prostate Cancer Data-set  1- Breast Cancer Data-set 2- Abalone Data-set 3-Letters Data-set"<<std::endl;
+    std::cin>> file_index;
+    if (file_index >= 0 && file_index <= 3){
     std::cout << filenames[file_index] << std::endl;
     switch(file_index) {
         case 0:
@@ -101,7 +105,10 @@ int main () {
     duration = (end.tv_sec - start.tv_sec) * 1e6;
     duration = (duration + (end.tv_usec - start.tv_usec)) * 1e-6;
 
-    std::cout << "Time taken for classification with " <<  K << " neighbors : " << duration << std::endl;
+    std::cout << "Time taken for classification with " <<  K << " neighbors : " << duration << std::endl;}
+    else{
+        std::cerr<< " Wrong Number " << std::endl;
+    }
     return 0;
 
 } //End main
