@@ -3,13 +3,13 @@
 #include <fstream>
 #include <sys/time.h>
 
-std::string filenames[3] = {"Prostate_Cancer_dataset.csv", "Breast_Cancer_dataset.csv","abalone.csv"};
-int file_index = 1; // Change this to change which file to load
+
+std::string filenames[4] = {"Prostate_Cancer_dataset.csv", "Breast_Cancer_dataset.csv","abalone.csv", "letters.csv"};
+int file_index; // Cin
 
 int test_data_size;
 int train_data_size;
 int size_of_line;
-// TODO : Might wanna get 2 more values to check {3,5,7}
 //Defining the number of K distances to test against.
 int K = 5;
 
@@ -17,7 +17,7 @@ int K = 5;
 //Function Prototypes
 void read_line(std::string line, float *row, int line_size, char &category);
 void read_data(std::string filename, Point *test_data, Point *train_data, int line_size);
-void quick_sort(Euclidean *euclidean_arr, int pivot, int size_of_arr); 
+void quick_sort(Euclidean *euclidean_arr, int pivot, int size_of_arr);
 void swap_numbers(Euclidean *euclidean_arr, int large_index, int small_index);
 
 int partition(Euclidean *euclidean_arr, int small, int big, int pivot);
@@ -25,6 +25,10 @@ int max(int a, int b);
 char mode(Euclidean *euclidean_arr);
 
 int main () {
+    std::cout << " Please enter a number to choose a dataset " << std::endl;
+    std::cout << " 0- Prostate_Cancer_dataset  1- Breast_Cancer_dataset  2- Abalone_dataset 3- Letters_dataset " << std::endl;
+    std::cin >> file_index; 
+    if (file_index >= 0 && file_index <= 3) {
     std::cout << filenames[file_index] << std::endl;
     switch(file_index) {
         case 0:
@@ -39,19 +43,23 @@ int main () {
             break;
         case 2:
             test_data_size = 1253;
-            train_data_size = 2924; 
+            train_data_size = 2924;
             size_of_line = 10;
             break;
+        case 3:
+            test_data_size = 6000;
+            train_data_size = 14000;
+            size_of_line = 18;
     }
     // Read in dataset
     std::string line;
-    
+
     Point test_data[test_data_size];
     Point train_data[train_data_size];
 
-    // Execution time variables 
+    // Execution time variables
     struct timeval start, end;
-    float duration; 
+    float duration;
 
     std::cout << " Reading data..." << std::endl;
 //    read_data("Prostate_Cancer_dataset.csv", test_data, train_data);
@@ -59,47 +67,52 @@ int main () {
     std::cout << " Done reading data." << std::endl;
 
     Euclidean euclidean_dist_arr[train_data_size];
-    
+
     // time at start of classification
     gettimeofday(&start, NULL);
     std::ios_base::sync_with_stdio(false);
     // Loop over all of test_data in order to classify.
-    
+
     for (int test_index = 0; test_index < test_data_size; test_index++) {
+        // Training
         for (int train_index = 0; train_index < train_data_size; train_index++) {
             euclidean_dist_arr[train_index].setValues( \
                      test_data[test_index].EuclideanDistance(train_data[train_index]), \
                                                             &train_data[train_index]);
         }
-
+        // Sorting 
         quick_sort(euclidean_dist_arr, 0, (sizeof(euclidean_dist_arr)/sizeof(Euclidean))-1);
         Euclidean k_selections[K];
 
-      //  std::cout << "distances are :"<<std::endl; 
+        //  std::cout << "distances are :"<<std::endl;
 
-      //  for (int i =0; i < 70; i++){
-      //   std::cout << i << " : "<< euclidean_dist_arr[i].getDistance() << std::endl;
-      //  }
+        //  for (int i =0; i < 70; i++){
+        //   std::cout << i << " : "<< euclidean_dist_arr[i].getDistance() << std::endl;
+        //  }
         for (int index = 0; index < K; index++) {
             k_selections[index] = euclidean_dist_arr[index];
-        //    std::cout << k_selections[index].getDistance() << std::endl;
+            //    std::cout << k_selections[index].getDistance() << std::endl;
         }
-        
+
         char classification = mode(k_selections);
         test_data[test_index].setClassification(classification);
         test_data[test_index].printCoords();
     }
-     
 
-    
+
+
     // time at the enf of classification
     gettimeofday(&end, NULL);
-    duration = (end.tv_sec - start.tv_sec) * 1e6; 
+    duration = (end.tv_sec - start.tv_sec) * 1e6;
     duration = (duration + (end.tv_usec - start.tv_usec)) * 1e-6;
 
 
     std::cout << "Time taken for classification with " <<  K << " neighbors : " << duration << std::endl;
-	return 0;
+}
+else {
+    std::cerr << " Wrong number of Entered" << std::endl;
+}
+    return 0;
 }
 
 /*
@@ -117,30 +130,32 @@ void read_line(std::string line, float *row, int line_size, char &category) {
     std::string temp;
 
     while (line.length() > 0) {
-       temp = line.substr(0, line.find(',')); 
+        temp = line.substr(0, line.find(','));
 
-       if (counter == (line_size - 2)) {
+        if (counter == (line_size - 2)) {
 
-           row[counter] = stof(line);
-           counter = 0;
+            row[counter] = stof(line);
+            counter = 0;
 
-           break;
-       }
-       
-       else if ((temp.compare("M") == 0) || (temp.compare("B") == 0) || \
+            break;
+        }
+
+//       else if ((temp.compare("M") == 0) || (temp.compare("B") == 0) || \
                 (temp.compare("I") == 0) || (temp.compare("F") == 0)) {
-           
-           //Converts to char array and then assigns 0th element to char, being 
-           //the letter for classification
-           category = temp.c_str()[0];
-       }
+        int char_val = temp.c_str()[0];
+        if (char_val >= 65 && char_val <= 90) {
 
-       else {
-          row[counter] = stof(temp); 
-          counter++;
-       }
-       
-       line.erase(0, line.find(',')+1);
+            //Converts to char array and then assigns 0th element to char, being
+            //the letter for classification
+            category = char_val;
+        }
+
+        else {
+            row[counter] = stof(temp);
+            counter++;
+        }
+
+        line.erase(0, line.find(',')+1);
     }
 }
 
@@ -169,7 +184,7 @@ void read_data(std::string filename, Point *test_data, Point *train_data, int li
     int line_count = 0;
     int test_index = 0;
     int train_index = 0;
-    char category; 
+    char category;
 
     getline(inStream, line);
     line = "";
@@ -182,14 +197,14 @@ void read_data(std::string filename, Point *test_data, Point *train_data, int li
             if (line_count < test_data_size) {
 
                 test_data[test_index].setSize(line_size-1);
-                test_data[test_index].setCoords(row);  
+                test_data[test_index].setCoords(row);
 
                 test_index++;
             }
             else if (line_count < (train_data_size+test_data_size)) {
 
                 train_data[train_index].setSize(line_size);
-                train_data[train_index].setCoords(row); 
+                train_data[train_index].setCoords(row);
                 train_data[train_index].setClassification(category);
 
                 train_index++;
@@ -203,7 +218,7 @@ void read_data(std::string filename, Point *test_data, Point *train_data, int li
 }
 
 int partition(Euclidean *euclidean_arr, int low, int high, float pivot) {
-    
+
     while (low <= high) {
         while (euclidean_arr[low].getDistance() < pivot) {
             low++;
@@ -216,14 +231,14 @@ int partition(Euclidean *euclidean_arr, int low, int high, float pivot) {
         }
     }
     return low;
-    
+
 }
 
 void quick_sort(Euclidean *euclidean_arr, int small, int big) {
-    
+
     if (small < big) {
 
-        float pivot = euclidean_arr[(small+big)/2].getDistance(); 
+        float pivot = euclidean_arr[(small+big)/2].getDistance();
         int j = partition(euclidean_arr, small, big, pivot);
 
         quick_sort(euclidean_arr, small, j-1);
@@ -245,16 +260,26 @@ void swap_numbers(Euclidean *euclidean_arr, int large_index, int small_index) {
  */
 char mode(Euclidean *euclidean_objs) {
 
-    int M = 0;
-    int B = 0;
-    int I = 0;
-    int F = 0;
-    
+    int class_values[25] = { 0 };
+//    int M = 0;
+//    int B = 0;
+//    int I = 0;
+//    int F = 0;
     char classification;
+    int index;
+    int largest_index = 0;
 
-    for (int index = 0; index < K; index++) {
-        classification = euclidean_objs[index].getPointer()->getClassification();
+    for (int k_counter = 0; k_counter < K; k_counter++) {
 
+        classification = euclidean_objs[k_counter].getPointer()->getClassification();
+        index = (classification + 25) - 'Z';
+        class_values[index] += 1;
+
+        if (class_values[index] > class_values[largest_index]) {
+            largest_index = index;
+        }
+
+        /*
         if (classification == 'M') {
             M++;
         }
@@ -267,13 +292,17 @@ char mode(Euclidean *euclidean_objs) {
         else if (classification == 'F') {
             F++;
         }
+        */
     }
 
-    int largest_num = max(max(M, B), max(I, F)); 
+//    int largest_num = max(max(M, B), max(I, F));
+//
+//    return (largest_num == M) ? 'M' : \
+//           (largest_num == B) ? 'B' : \
+//           (largest_num == I) ? 'I' : 'F';\
 
-    return (largest_num == M) ? 'M' : \
-           (largest_num == B) ? 'B' : \
-           (largest_num == I) ? 'I' : 'F';\
+    char letter = (largest_index+90)-25;
+    return letter;
 }
 
 int max(int a, int b) {
