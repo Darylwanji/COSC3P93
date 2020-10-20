@@ -1,6 +1,8 @@
 #include "euclidean.h"
 
 /*
+ * Returns the Euclidean distance
+ *
  * @params none
  * @returns the euclidean distance stored in the object value.
  */
@@ -9,6 +11,8 @@ float Euclidean::getDistance() {
 }
 
 /*
+ * Returns the Point object pointer.
+ *
  * @params none
  * @returns the pointer pointing to a Point object
  */
@@ -18,6 +22,8 @@ Point *Euclidean::getPointer() {
 }
 
 /*
+ * Initializes values for the distance and Point object.
+ *
  * @param distance The value of the Euclidean distance.
  * @param point The pointer pointing to a Point object.
  * @returns none

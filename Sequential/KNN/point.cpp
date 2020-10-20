@@ -20,33 +20,15 @@ float Point::EuclideanDistance (Point q){
 }
 
 /*
- * This function prints the attributes in a table to standard out.
- *
- * @params none
- * @returns none
+ * Prints the ID and Classification for a object.
  */
 void Point::printCoords() {
-	/*
-    for (int counter = 0; counter < 10; counter++) {
-		if (counter == 1) {
-			if (coords[counter] == 0) {
-				std::cout << "M" << "\t";
-			}
-			else {
-				std::cout << "B" << "\t";
-			}
-		}
-		else {
-        	std::cout << coords[counter] << "\t";
-		}
-    }
-    std::cout << std::endl;
-	*/
 	std::cout << "ID: " << this->coords[0] << "\tClassification: " << this->classification << std::endl;
 }
 
 /*
- * @param none
+ * Returns a float array of coordinates stored in a object.
+ *
  * @returns the attributes for the data point.
 */
 float *Point::getCoords(){
@@ -54,8 +36,9 @@ float *Point::getCoords(){
 }
 
 /* 
+ * Initializes the float coords array
+ *
  * @param row A float array containing the values for a data point in the prostate cancer csv
- * @returns none
  */
 void Point::setCoords(float *row) {
     for (int i = 0; i < this->size_of_coords; i++) {
@@ -64,17 +47,27 @@ void Point::setCoords(float *row) {
 }
 
 /*
+ * Sets the value for the classification of this object, represented by a char.
+ *
  * @param value A float value containing the classification (0 for M, 1 for B)
- * @returns none
  */
 void Point::setClassification(char value) {
     this->classification = value;
 }
 
+/*
+ *
+ * @returns classification character a letter from 'A' to 'Z'
+ */
 char Point::getClassification() {
     return this->classification;
 }
 
+/*
+ * Sets the size for the float coords array.
+ *
+ * @param size An Integer value containing the size of the coords array.
+ */
 void Point::setSize(int size) {
 	this->size_of_coords = size;
 }
