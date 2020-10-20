@@ -1,0 +1,128 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{algpseudocode}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\begin{document}
+
+\title{PARALLEL COMPUTING \\
+}
+
+\author{\IEEEauthorblockN{Aditya Rajyaguru, Brandon Daryl Wanji}
+\IEEEauthorblockA{\textit{ 6582282, 6151351  }\\
+Brock University \\
+St. Catharines, ON, Canada \\
+}
+} 
+\maketitle{MACHINE LEARNING, K-NEAREST NEIGHBORS\\}
+
+\begin{abstract} 
+This document analyzes the performance of the K-nearest neighbors algorithm's implementation in C++, pinpoints its bottlenecks and discusses ways to improve its performance. 
+\end{abstract}
+\section{ INTRODUCTION } 
+The K-nearest neighbors algorithm is one of the simplest supervised machine learning algorithm used in regression and classification. \\
+This document demonstrates how different such an algorithm is in terms of execution time by implementing it sequentially and paralleled.
+\section{ IMPLEMENTATION }
+\subsection{ Sequential Implementation}
+A sequential implementation of the K-nearest neighbors implies there is a need to limit as much as possible the use of any specialized libraries that might help with parallel execution optimizations.~\cite{rd} \\
+\begin{algorithm}
+This algorithm is as follows : like \\
+\caption{K-nearest neighbors}\label{euclid}
+\begin{algorithmic}[1]
+\STATE Load the training and testing data-sets 
+\STATE Choose the value of K 
+\FORALL{points int test data }
+    \STATE  - Find Euclidean distance to all training data points
+    \STATE  - Store the Euclidean distances in a list and sort it 
+    \STATE  - Choose the first K points from Euclidean list
+    \STATE  - Assign a class to the test point based on the majority of classes present in the chosen points
+\ENDFORALL
+\end{algorithmic}
+\end{algorithm}
+Please find attached the algorithm fully implemented in \textbf{C++}.
+\subsection{ Assumptions }
+The following assumptions were made ; 
+\begin{itemize}
+    \item The accuracy of the algorithm is not prioritized. 
+    \item The different classes for each data-sets are balanced. That is, they have equal number of points per class. 
+    \item Finding the best value for \textbf{K} is not prioritized. 
+\end{itemize}
+\section{DESIGN}
+The Design phase for this project was a crucial phase as it had to be simple, easy to understand and modular. This phase brought into perspective the different needs for this project. \\
+The different needs were devised into 5 sections, which are ;
+\subsection{ Data-sets }
+In order to test algorithm in different scenarios, 03 different data-sets were used.  \textbf{The Prostate Cancer data-set}~\cite{pcd}, \textbf{Abalone data-set}~\cite{ad} and \textbf{Breast Cancer data-set}~\cite{bcd}.\\ 
+The data-sets are used to  demonstrate how long the algorithm could take with the number of dimensions increasing.  
+\subsection{ Point Class }
+The point class abstracts the dimensions of an index and it classification. This class is responsible for calculating the Euclidean distance between the coordinates within the point and another \textbf{Point q}'s coordinates, printing the coordinates and having the getters and setters for both the coordinates and classification. \\ 
+The sorting algorithm used here is \textbf{Quick sort}. \\
+Of all other sorting algorithms, quick sort was used because it has potential for parallelism and will help demonstrate a difference in execution times. 
+\subsection{ Euclidean Class }
+The Euclidean class abstracts the distance from a point to be classified, Point P to another Point q with a pointer, pointing to the Point q. Having this class helps to easily identify the point from which the distance was calculated.
+\subsection{ KNN class }
+This class handles the parsing of all 3 data-sets, the K-nearest neighbors algorithm's main execution flow. It handles the sorting of the Euclidean distances after their calculations, switch the data-set depending on what a user's input. \\
+In addition to that, this class devides the data-set into training and testing data-sets.
+Furthermore, this class is responsible for the calculation execution time's calculation over some variables. 
+\subsection{ RUN }
+A make file was created to ease the execution of the program.  \\
+The program's execution is as follows : \\
+\begin{itemize}
+    \item On the terminal, run the make file with the command \textbf{make} 
+    \item User will be prompted to enter a number from 0 to 03 inclusive to choose the data set to use. 
+\end{itemize}
+\section{ANALYSIS ON PERFORMANCE}
+With the implementation done, an analysis over the 03 data sets is done. The table below shows the average execution time of the algorithm over 05 runs for each data-set. The data-sets are in increasing order of points from left to right.
+\begin{table}[h!]
+\centering
+ \begin{tabular}{||c c c||} 
+ \hline
+ Prostate Cancer & Breast Cancer  & Abalone \\ [0.5ex] 
+ \hline\hline
+ 0.6 & 25 & 669  \\ [1ex] 
+ \hline
+ \end{tabular}
+ \caption{Average execution times over 5 runs for each data-set}
+\label{table:1}
+\end{table} \\
+As seen above, we can see a considerate increase in time as we go from the prostate cancer data-set to the Abalone data-set. This indicates that of all these data-set, the data-set with the highest parallelization potential is the Abalone data-set as it contains way more points than the 02 prior.
+\section{ BOTTLENECKS}
+\section{CONCLUSION}
+\bibliographystyle{plain}
+\bibliography{bibliograph.bib}
+
+\end{document}
+\documentclass{beamer}
+
+% \usepackage{beamerthemesplit} // Activate for custom appearance
+
+\title{Example Presentation Created with the Beamer Package}
+\author{Till Tantau}
+\date{\today}
+
+\begin{document}
+
+\frame{\titlepage}
+
+\section[Outline]{}
+\frame{\tableofcontents}
+
+\section{Introduction}
+\subsection{Overview of the Beamer Class}
+\frame
+{
+  \frametitle{Features of the Beamer Class}
+
+  \begin{itemize}
+  \item<1-> Normal LaTeX class.
+  \item<2-> Easy overlays.
+  \item<3-> No external programs needed.      
+  \end{itemize}
+}
+\end{document}
