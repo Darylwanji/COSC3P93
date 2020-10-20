@@ -3,7 +3,7 @@
 /*
  * This class is meant to store the value of the euclidean distances calculated, 
  * for every data point inside of the training data set. It stores both the distance
- * and a pointer to the objct in the training set.
+ * and a pointer to the Point object in the training set.
  */
 class Euclidean {
     private:

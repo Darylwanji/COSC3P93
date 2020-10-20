@@ -1,7 +1,7 @@
 /*
- * This class holds the attributes for every data point inside of the data set for,
- * prostate cancer. It also has a function to calculate the euclidean distance in
- * relation to itself with another data point.
+ * This class represents a line in a dataset CSV file. It holds all the attributes
+ * defined on the line and functions necessary for classification like the EuclideanDistance
+ * function.
  */
 
 class Point {
