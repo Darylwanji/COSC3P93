@@ -5,7 +5,6 @@
 
 int file_index; // Cin
 std::string filenames[4] = {"Prostate_Cancer_dataset.csv", "Breast_Cancer_dataset.csv","abalone.csv", "letters.csv"};
-int file_index = 1; // Change this to change which file to load
 
 int test_data_size;
 int train_data_size;
