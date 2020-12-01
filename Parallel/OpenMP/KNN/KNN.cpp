@@ -9,6 +9,8 @@
 #include <iostream>
 #include <fstream>
 #include <sys/time.h>
+#include <omp.h>
+
 
 std::string filenames[4] = {"datasets/Prostate_Cancer_dataset.csv", "datasets/Breast_Cancer_dataset.csv","datasets/abalone.csv", "datasets/letters.csv"};
 int file_index; // Global var used for parsing
@@ -44,6 +46,7 @@ int main () {
     std::cout << "Input: ";
 
     char input;
+    int thread_count = 4;
     std::cin >> input;
     int check = input - '0';
 
@@ -55,7 +58,7 @@ int main () {
         file_index = check;
     }
 
-    switch(file_index) {
+    switch(file_index){
         case 0:
             test_data_size = 30;
             train_data_size = 70;
@@ -89,6 +92,7 @@ int main () {
     float duration;
 
     std::cout << " Reading data..." << std::endl;
+   #pragma omp parallel
     read_data(filenames[file_index], test_data, train_data, size_of_line);
     std::cout << " Done reading data." << std::endl;
 
@@ -98,18 +102,17 @@ int main () {
     // time at start of classification
     gettimeofday(&start, NULL);
     std::ios_base::sync_with_stdio(false);
-
-    // This nested for loop is the pseudo-algorithm described in the report.
+    #pragma omp parallel default(shared)
+    {
     for (int test_index = 0; test_index < test_data_size; test_index++) {
+        #pragma omp paralle for
         for (int train_index = 0; train_index < train_data_size; train_index++) {
-            euclidean_dist_arr[train_index].setValues( \
-                     test_data[test_index].EuclideanDistance(train_data[train_index]), \
-                                                            &train_data[train_index]);
+            euclidean_dist_arr[train_index].setValues( test_data[test_index].EuclideanDistance(train_data[train_index]), &train_data[train_index]);
         }
 
         quick_sort(euclidean_dist_arr, 0, (sizeof(euclidean_dist_arr)/sizeof(Euclidean))-1);
         Euclidean k_selections[K];
-
+        #pragma omp parallel for
         for (int index = 0; index < K; index++) {
             k_selections[index] = euclidean_dist_arr[index];
         }
@@ -122,8 +125,8 @@ int main () {
         //test_data[test_index].printCoords();
 
     } //End outer for loop
-
-    // time at the end of classification
+}
+ // time at the end of classification
     gettimeofday(&end, NULL);
     duration = (end.tv_sec - start.tv_sec) * 1e6;
     duration = (duration + (end.tv_usec - start.tv_usec)) * 1e-6;
@@ -201,28 +204,25 @@ void read_data(std::string filename, Point *test_data, Point *train_data, int li
     line = "";
 
     if (inStream.is_open()) {
-
         while (getline(inStream, line, '\n')) {
             read_line(line, row, line_size, category);
 
             if (line_count < test_data_size) {
-
                 test_data[test_index].setSize(line_size-1);
                 test_data[test_index].setCoords(row);
-
+                
                 test_index++;
             }
             else if (line_count < (train_data_size+test_data_size)) {
-
                 train_data[train_index].setSize(line_size);
                 train_data[train_index].setCoords(row);
                 train_data[train_index].setClassification(category);
-
+                
                 train_index++;
             }
             line_count++;
         }
-    }
+}
     else {
         std::cout << "Failed to open file." << std::endl;
     }
@@ -277,7 +277,6 @@ void quick_sort(Euclidean *euclidean_arr, int small, int big) {
         //Running quicksort recursively on two halves of the array
         quick_sort(euclidean_arr, small, j-1);
         quick_sort(euclidean_arr, j, big);
-
     }
 }
 
@@ -309,13 +308,15 @@ char mode(Euclidean *euclidean_objs) {
     int largest_index = 0;
 
     char classification;
-
+    #pragma omp parallel for private(classification,index)
+    // Write and Read True dependency going on with Classification and index
     for (int k_counter = 0; k_counter < K; k_counter++) {
 
         classification = euclidean_objs[k_counter].getPointer()->getClassification();
 
         //Converts the letter's ASCII value to an index in the array.
         index = (classification + 25) - 90;
+        
         class_values[index]++;
 
         if (class_values[index] >= class_values[largest_index]) {

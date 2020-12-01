@@ -1,4 +1,6 @@
 #include "euclidean.h"
+#include <omp.h>
+
 
 /*
  * Returns the Euclidean distance

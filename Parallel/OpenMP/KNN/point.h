@@ -11,7 +11,7 @@ class Point {
 	   char classification = 'N'; //N = no classification
 
 	public:
-		float EuclideanDistance (Point q); 
+	float EuclideanDistance (Point q); 
         float *getCoords();
         char getClassification();
 

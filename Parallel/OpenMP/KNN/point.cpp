@@ -12,10 +12,12 @@
 float Point::EuclideanDistance (Point q){
 	float sum = 0;
 	float EuclideanDistance = 0; 
+    #pragma omp parallel for num_threads(16) reduction(+:sum) 
     for (int index = 1; index < this->size_of_coords; index++) {
-        float difference = coords[index] - q.getCoords()[index];
+	float difference = coords[index] - q.getCoords()[index];
         sum += (difference*difference);
     }
+    
     EuclideanDistance = sqrt(sum);
     return EuclideanDistance;
 }
