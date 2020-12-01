@@ -33,9 +33,9 @@ void swap_numbers(Euclidean *euclidean_arr, int large_index, int small_index);
 
 int partition(Euclidean *euclidean_arr, int small, int big, int pivot);
 int max(int a, int b);
-char mode(Euclidean *euclidean_arr);
+char mode(Euclidean *euclidean_arr, int thread_count);
 
-int main () {
+int main (int argc, char* argv[]) {
     
     std::cout << " Please enter a number to choose a data-set" << std::endl;
     std::cout << "0: Prostate Cancer Data-set (100 data points)" << std::endl;
@@ -46,7 +46,7 @@ int main () {
     std::cout << "Input: ";
 
     char input;
-    int thread_count = 4;
+    int thread_count = strtol(argv[1], NULL, 10);
     std::cin >> input;
     int check = input - '0';
 
@@ -92,7 +92,6 @@ int main () {
     float duration;
 
     std::cout << " Reading data..." << std::endl;
-   #pragma omp parallel
     read_data(filenames[file_index], test_data, train_data, size_of_line);
     std::cout << " Done reading data." << std::endl;
 
@@ -102,22 +101,19 @@ int main () {
     // time at start of classification
     gettimeofday(&start, NULL);
     std::ios_base::sync_with_stdio(false);
-    #pragma omp parallel default(shared)
-    {
     for (int test_index = 0; test_index < test_data_size; test_index++) {
-        #pragma omp paralle for
+        #pragma omp parallel for num_threads(thread_count)
         for (int train_index = 0; train_index < train_data_size; train_index++) {
-            euclidean_dist_arr[train_index].setValues( test_data[test_index].EuclideanDistance(train_data[train_index]), &train_data[train_index]);
+            euclidean_dist_arr[train_index].setValues( test_data[test_index].EuclideanDistance(train_data[train_index], thread_count), &train_data[train_index]);
         }
-
         quick_sort(euclidean_dist_arr, 0, (sizeof(euclidean_dist_arr)/sizeof(Euclidean))-1);
         Euclidean k_selections[K];
-        #pragma omp parallel for
+
+        #pragma omp parallel for num_threads(thread_count)
         for (int index = 0; index < K; index++) {
             k_selections[index] = euclidean_dist_arr[index];
         }
-
-        char classification = mode(k_selections);
+        char classification = mode(k_selections, thread_count);
         test_data[test_index].setClassification(classification);
 
         //Uncomment this if you wish to see the classifications for every data point.
@@ -125,7 +121,6 @@ int main () {
         //test_data[test_index].printCoords();
 
     } //End outer for loop
-}
  // time at the end of classification
     gettimeofday(&end, NULL);
     duration = (end.tv_sec - start.tv_sec) * 1e6;
@@ -301,14 +296,14 @@ void swap_numbers(Euclidean *euclidean_arr, int large_index, int small_index) {
  * @param euclidean_objs The euclidean objects to check the mode for.
  * @return the mode of classification.
  */
-char mode(Euclidean *euclidean_objs) {
+char mode(Euclidean *euclidean_objs, int thread_count) {
 
     int class_values[25] = { 0 };
     int index;
     int largest_index = 0;
 
     char classification;
-    #pragma omp parallel for private(classification,index)
+    #pragma omp parallel for num_threads(thread_count) private(classification, index)
     // Write and Read True dependency going on with Classification and index
     for (int k_counter = 0; k_counter < K; k_counter++) {
 
@@ -319,6 +314,7 @@ char mode(Euclidean *euclidean_objs) {
         
         class_values[index]++;
 
+        #pragma omp critical
         if (class_values[index] >= class_values[largest_index]) {
             largest_index = index;
         }
