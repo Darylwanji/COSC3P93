@@ -51,7 +51,6 @@ int main () {
 		for(int i = 0; i< 5; i++){
 			cout<< times[i] << "\t";
 		}
-		cout<< serial_times[k] << endl;
 		speedup = Calculate_speedup(serial_times[j],average);
 		efficiency = Calculate_Efficiency(speedup,number_of_threads);
 		cost = Calculate_cost(number_of_threads,average);
