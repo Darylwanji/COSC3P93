@@ -107,6 +107,8 @@ int main () {
     MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     // This nested for loop is the pseudo-algorithm described in the report.
+
+    /*
     for (int test_index = 0; test_index < test_data_size; test_index++) {
         int max_process;
         
@@ -153,6 +155,7 @@ int main () {
         //test_data[test_index].printCoords();
 
     } //End outer for loop
+    */
     MPI_Finalize();
     // time at the end of classification
     gettimeofday(&end, NULL);
