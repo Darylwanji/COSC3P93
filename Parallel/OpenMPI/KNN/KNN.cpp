@@ -9,6 +9,7 @@
 #include <iostream>
 #include <fstream>
 #include <sys/time.h>
+#include <mpi.h>
 
 std::string filenames[4] = {"datasets/Prostate_Cancer_dataset.csv", "datasets/Breast_Cancer_dataset.csv","datasets/abalone.csv", "datasets/letters.csv"};
 int file_index; // Global var used for parsing
@@ -99,15 +100,45 @@ int main () {
     gettimeofday(&start, NULL);
     std::ios_base::sync_with_stdio(false);
 
+    int comm_sz; // Communication size aka # of processes in communication world
+    int my_rank; // Rank of this process.
+    
+    MPI_Init(NULL, NULL);
+    MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
+    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     // This nested for loop is the pseudo-algorithm described in the report.
     for (int test_index = 0; test_index < test_data_size; test_index++) {
-        for (int train_index = 0; train_index < train_data_size; train_index++) {
+        int max_process;
+        
+        if (my_rank == comm_sz-1) {
+            max_process = test_data_size/comm_sz;
+            max_process += (test_data_size % comm_sz);
+        }
+        else {
+            max_process = test_data_size/comm_sz;
+        }
+        //If 0*max then it's 0 starting, if 1 then it'll be the size of the group
+        //Enforces that each process will start at some position that'll be exclusive to the other.
+        int train_index = max_process * my_rank;
+        int euclid_dist;
+
+        for (int counter = 0 ; counter < max_process; counter++) {
             euclidean_dist_arr[train_index].setValues( \
                      test_data[test_index].EuclideanDistance(train_data[train_index]), \
                                                             &train_data[train_index]);
         }
 
-        quick_sort(euclidean_dist_arr, 0, (sizeof(euclidean_dist_arr)/sizeof(Euclidean))-1);
+        if (my_rank == 0) {
+            for (int = 
+        }
+
+        if (my_rank == 0) {
+            quick_sort(euclidean_dist_arr, 0, (sizeof(euclidean_dist_arr)/sizeof(Euclidean))-1);
+        }
+        else {
+            //receive message from rank 0 saying it's good to go.
+        }
+
         Euclidean k_selections[K];
 
         for (int index = 0; index < K; index++) {
@@ -122,7 +153,7 @@ int main () {
         //test_data[test_index].printCoords();
 
     } //End outer for loop
-
+    MPI_Finalize();
     // time at the end of classification
     gettimeofday(&end, NULL);
     duration = (end.tv_sec - start.tv_sec) * 1e6;
