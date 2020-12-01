@@ -26,7 +26,7 @@ int K;
 
 //Function Prototypes
 void read_line(std::string line, float *row, int line_size, char &category);
-void read_data(std::string filename, Point *test_data, Point *train_data, int line_size);
+void read_data(std::string filename, Point *test_data, Point *train_data, int line_size, int numLines);
 void quick_sort(Euclidean *euclidean_arr, int pivot, int size_of_arr);
 void swap_numbers(Euclidean *euclidean_arr, int large_index, int small_index);
 
@@ -35,25 +35,47 @@ int max(int a, int b);
 char mode(Euclidean *euclidean_arr);
 
 int main () {
+    int comm_sz; // Communication size aka # of processes in communication world
+    int my_rank; // Rank of this process.
     
-    std::cout << " Please enter a number to choose a data-set" << std::endl;
-    std::cout << "0: Prostate Cancer Data-set (100 data points)" << std::endl;
-    std::cout << "1: Breast Cancer Data-set (569 data points)" << std::endl;
-    std::cout << "2: Abalone Data-set (4177 data point))" << std::endl;
-    std::cout << "3: Letters Data-set (20000 data points)" << std::endl;
-    std::cout << "Any other key to quit." << std::endl;
-    std::cout << "Input: ";
+    MPI_Init(NULL, NULL);
+    MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
+    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+    if (my_rank == 0) {
+        
+        std::cout << " Please enter a number to choose a data-set" << std::endl;
+        std::cout << "0: Prostate Cancer Data-set (100 data points)" << std::endl;
+        std::cout << "1: Breast Cancer Data-set (569 data points)" << std::endl;
+        std::cout << "2: Abalone Data-set (4177 data point))" << std::endl;
+        std::cout << "3: Letters Data-set (20000 data points)" << std::endl;
+        std::cout << "Any other key to quit." << std::endl;
+        std::cout << "Input: ";
 
-    char input;
-    std::cin >> input;
-    int check = input - '0';
+        char input;
+        //std::cin >> input;
+        std::cin.get(input);
+        int check = input - '0';
 
-    if (check < 0 || check > 3) {
-        std::cerr << "Exiting." << std::endl;
-        return 0;
+        if (check < 0 || check > 3) {
+            std::cerr << "Exiting." << std::endl;
+            check = -1;
+            for (int i = 0; i < comm_sz; i++) {
+                MPI_Send(&check, 1, MPI_INT, i, 0, MPI_COMM_WORLD); 
+            }
+            MPI_Finalize();
+            return 0;
+        }
+        else {
+            file_index = check;
+        }
     }
     else {
-        file_index = check;
+        int check;
+        MPI_Recv(&check, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        if (check < 0) {
+            MPI_Finalize();
+            return 0;
+        }
     }
 
     switch(file_index) {
@@ -90,23 +112,75 @@ int main () {
     float duration;
 
     std::cout << " Reading data..." << std::endl;
-    read_data(filenames[file_index], test_data, train_data, size_of_line);
+    read_data(filenames[file_index], test_data, train_data, size_of_line, 0);
     std::cout << " Done reading data." << std::endl;
 
-    //Array that holds the distance between testing point and the training one.
-    Euclidean euclidean_dist_arr[train_data_size];
 
     // time at start of classification
     gettimeofday(&start, NULL);
     std::ios_base::sync_with_stdio(false);
 
-    int comm_sz; // Communication size aka # of processes in communication world
-    int my_rank; // Rank of this process.
     
-    MPI_Init(NULL, NULL);
-    MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
-    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     // This nested for loop is the pseudo-algorithm described in the report.
+    int test_remainder;
+    int train_remainder;
+    int K_remainder = K % comm_sz; 
+    K = K / comm_sz;
+    if (my_rank == comm_sz-1) {
+        // If even division happens then the remainder will be 0 otherwise 
+        // the extra datapoints are added to the last thread's workload.
+        
+        test_remainder = test_data_size % comm_sz;
+        train_remainder = train_data_size % comm_sz;
+        test_data_size = test_data_size/comm_sz;
+        train_data_size = train_data_size/comm_sz;
+        
+        K += K_remainder;
+    }
+    else {
+        test_data_size = test_data_size/comm_sz;
+        train_data_size = train_data_size/comm_sz;
+        
+        test_remainder = 0;
+        train_remainder = 0;
+    }
+
+    //Array that holds the distance between testing point and the training one.
+    Euclidean euclidean_dist_arr[train_data_size + train_remainder];
+
+    for (int test_index = (my_rank * test_data_size); \
+            test_index < (test_data_size + test_remainder); \
+            test_index++) 
+    {
+        for (int train_index = (my_rank * train_data_size); \
+                train_index < (train_data_size + train_remainder);
+                train_index++)
+        {
+            euclidean_dist_arr[train_index].setValues( \
+                      test_data[test_index].EuclideanDistance(train_data[train_index]), \
+                                                             &train_data[train_index]);
+        }
+
+        quick_sort(euclidean_dist_arr, 0, (sizeof(euclidean_dist_arr)/sizeof(Euclidean))-1);
+        
+        Euclidean k_selections[K];
+        for (int index = 0; index < K; index++) {
+            k_selections[index] = euclidean_dist_arr[index];
+        }
+        char classification = mode(k_selections);
+        
+        if (my_rank != 0) {
+            MPI_Send(&classification, 1, MPI_CHAR, 0, test_index, MPI_COMM_WORLD);
+        }
+        else {
+            test_data[test_index].setClassification(classification);
+            for (int i = 1; i < comm_sz; i++) {
+                MPI_Status status;
+                MPI_Recv(&classification, 1, MPI_CHAR, i, 0, MPI_COMM_WORLD, &status);
+                test_data[status.MPI_TAG].setClassification(classification);
+            }
+        }
+    } // Outer For Loop
 
     /*
     for (int test_index = 0; test_index < test_data_size; test_index++) {
@@ -216,7 +290,7 @@ void read_line(std::string line, float *row, int line_size, char &category) {
  * @param test_data A pointer to an array of Point objects
  * @param train_data A pointer to an array of Point objects.
  */
-void read_data(std::string filename, Point *test_data, Point *train_data, int line_size) {
+void read_data(std::string filename, Point *test_data, Point *train_data, int line_size, int numLines) {
 
     std::ifstream inStream(filename);
     std::string line;
