@@ -314,7 +314,7 @@ char mode(Euclidean *euclidean_objs, int thread_count) {
         
         class_values[index]++;
 
-        #pragma omp critical
+//        #pragma omp critical
         if (class_values[index] >= class_values[largest_index]) {
             largest_index = index;
         }
