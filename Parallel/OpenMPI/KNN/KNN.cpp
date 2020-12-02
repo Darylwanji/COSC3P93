@@ -26,13 +26,13 @@ int K;
 
 //Function Prototypes
 void read_line(std::string line, float *row, int line_size, char &category);
-void read_data(std::string filename, Point *test_data, Point *train_data, int line_size, int numLines);
+void read_data(std::string filename, Point *test_data, Point *train_data, int line_size, int numLines, int my_rank);
 void quick_sort(Euclidean *euclidean_arr, int pivot, int size_of_arr);
 void swap_numbers(Euclidean *euclidean_arr, int large_index, int small_index);
 
 int partition(Euclidean *euclidean_arr, int small, int big, int pivot);
 int max(int a, int b);
-char mode(Euclidean *euclidean_arr);
+char mode(Euclidean *euclidean_arr, int my_rank);
 
 int main () {
     int comm_sz; // Communication size aka # of processes in communication world
@@ -41,8 +41,8 @@ int main () {
     MPI_Init(NULL, NULL);
     MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+
     if (my_rank == 0) {
-        
         std::cout << " Please enter a number to choose a data-set" << std::endl;
         std::cout << "0: Prostate Cancer Data-set (100 data points)" << std::endl;
         std::cout << "1: Breast Cancer Data-set (569 data points)" << std::endl;
@@ -52,8 +52,7 @@ int main () {
         std::cout << "Input: ";
 
         char input;
-        //std::cin >> input;
-        std::cin.get(input);
+        std::cin >> input;
         int check = input - '0';
 
         if (check < 0 || check > 3) {
@@ -66,16 +65,22 @@ int main () {
             return 0;
         }
         else {
+            for (int i = 0; i < comm_sz; i++) {
+                MPI_Send(&check, 1, MPI_INT, i, 0, MPI_COMM_WORLD); 
+            }
             file_index = check;
         }
     }
     else {
         int check;
         MPI_Recv(&check, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
         if (check < 0) {
             MPI_Finalize();
             return 0;
         }
+
+        file_index = check;
     }
 
     switch(file_index) {
@@ -107,21 +112,6 @@ int main () {
     Point test_data[test_data_size];
     Point train_data[train_data_size];
 
-    // Execution time variables for benchmarking performance
-    struct timeval start, end;
-    float duration;
-
-    std::cout << " Reading data..." << std::endl;
-    read_data(filenames[file_index], test_data, train_data, size_of_line, 0);
-    std::cout << " Done reading data." << std::endl;
-
-
-    // time at start of classification
-    gettimeofday(&start, NULL);
-    std::ios_base::sync_with_stdio(false);
-
-    
-    // This nested for loop is the pseudo-algorithm described in the report.
     int test_remainder;
     int train_remainder;
     int K_remainder = K % comm_sz; 
@@ -132,9 +122,10 @@ int main () {
         
         test_remainder = test_data_size % comm_sz;
         train_remainder = train_data_size % comm_sz;
+        
         test_data_size = test_data_size/comm_sz;
         train_data_size = train_data_size/comm_sz;
-        
+
         K += K_remainder;
     }
     else {
@@ -144,17 +135,37 @@ int main () {
         test_remainder = 0;
         train_remainder = 0;
     }
+    // Execution time variables for benchmarking performance
+    struct timeval start, end;
+    float duration;
+
+    if (my_rank == 0) {
+        //We add 1 more to the line number because there's an extra line the 1st process has to ignore.
+        std::cout << " Reading data..." << std::endl;
+        int numLines = test_data_size + train_data_size + 1;
+        read_data(filenames[file_index], test_data, train_data, size_of_line, numLines, my_rank);
+        std::cout << " Done reading data." << std::endl;
+    }
+    else {
+        int numLines = test_data_size + train_data_size + test_remainder + train_remainder;
+        read_data(filenames[file_index], test_data, train_data, size_of_line, numLines, my_rank);
+    }
+
+    // time at start of classification
+    gettimeofday(&start, NULL);
+    std::ios_base::sync_with_stdio(false);
 
     //Array that holds the distance between testing point and the training one.
     Euclidean euclidean_dist_arr[train_data_size + train_remainder];
 
-    for (int test_index = (my_rank * test_data_size); \
-            test_index < (test_data_size + test_remainder); \
-            test_index++) 
+    // This nested for loop is the pseudo-algorithm described in the report.
+    
+    int start_point = my_rank * test_data_size; 
+    int start_point2 = my_rank * train_data_size;
+
+    for (int test_index = 0; test_index < (test_data_size + test_remainder); test_index++)
     {
-        for (int train_index = (my_rank * train_data_size); \
-                train_index < (train_data_size + train_remainder);
-                train_index++)
+        for (int train_index = 0; train_index < (train_data_size + train_remainder); train_index++)
         {
             euclidean_dist_arr[train_index].setValues( \
                       test_data[test_index].EuclideanDistance(train_data[train_index]), \
@@ -162,81 +173,59 @@ int main () {
         }
 
         quick_sort(euclidean_dist_arr, 0, (sizeof(euclidean_dist_arr)/sizeof(Euclidean))-1);
-        
         Euclidean k_selections[K];
+
         for (int index = 0; index < K; index++) {
             k_selections[index] = euclidean_dist_arr[index];
         }
-        char classification = mode(k_selections);
+        char classification = mode(k_selections, my_rank);
         
+        test_data[test_index].setClassification(classification);
         if (my_rank != 0) {
-            MPI_Send(&classification, 1, MPI_CHAR, 0, test_index, MPI_COMM_WORLD);
+            int index_to_send = test_index + (test_data_size * my_rank);
+            MPI_Send(&classification, 1, MPI_CHAR, 0, index_to_send, MPI_COMM_WORLD);
         }
         else {
-            test_data[test_index].setClassification(classification);
-            for (int i = 1; i < comm_sz; i++) {
+            for (int i = 1; i < comm_sz-1; i++) {
                 MPI_Status status;
-                MPI_Recv(&classification, 1, MPI_CHAR, i, 0, MPI_COMM_WORLD, &status);
+                MPI_Recv(&classification, 1, MPI_CHAR, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                 test_data[status.MPI_TAG].setClassification(classification);
             }
         }
     } // Outer For Loop
+    if (my_rank == 0) {
+        int size;
+        MPI_Recv(&size, 4, MPI_INT, comm_sz-1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-    /*
-    for (int test_index = 0; test_index < test_data_size; test_index++) {
-        int max_process;
-        
-        if (my_rank == comm_sz-1) {
-            max_process = test_data_size/comm_sz;
-            max_process += (test_data_size % comm_sz);
+        int start_index = size * comm_sz-1;
+        char classification;
+        while (start_index < size) {
+            MPI_Recv(&classification, 1, MPI_CHAR, comm_sz-1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            test_data[start_index].setClassification(classification);
+            start_index++;
         }
-        else {
-            max_process = test_data_size/comm_sz;
+    }
+    else {
+        int size = test_data_size + test_remainder;
+        MPI_Send(&size, 4, MPI_INT, 0, 0, MPI_COMM_WORLD);
+
+        char classification;
+        for (int i = 0; i < size; i++) {
+            classification = test_data[i].getClassification();
+            MPI_Send(&classification, 1, MPI_CHAR, 0, 0, MPI_COMM_WORLD);
         }
-        //If 0*max then it's 0 starting, if 1 then it'll be the size of the group
-        //Enforces that each process will start at some position that'll be exclusive to the other.
-        int train_index = max_process * my_rank;
-        int euclid_dist;
+    }
 
-        for (int counter = 0 ; counter < max_process; counter++) {
-            euclidean_dist_arr[train_index].setValues( \
-                     test_data[test_index].EuclideanDistance(train_data[train_index]), \
-                                                            &train_data[train_index]);
-        }
-
-        if (my_rank == 0) {
-            for (int = 
-        }
-
-        if (my_rank == 0) {
-            quick_sort(euclidean_dist_arr, 0, (sizeof(euclidean_dist_arr)/sizeof(Euclidean))-1);
-        }
-        else {
-            //receive message from rank 0 saying it's good to go.
-        }
-
-        Euclidean k_selections[K];
-
-        for (int index = 0; index < K; index++) {
-            k_selections[index] = euclidean_dist_arr[index];
-        }
-
-        char classification = mode(k_selections);
-        test_data[test_index].setClassification(classification);
-
-        //Uncomment this if you wish to see the classifications for every data point.
-        //Not recommended for the letters.csv dataset as it has 20000 lines to print.
-        //test_data[test_index].printCoords();
-
-    } //End outer for loop
-    */
     MPI_Finalize();
     // time at the end of classification
     gettimeofday(&end, NULL);
     duration = (end.tv_sec - start.tv_sec) * 1e6;
     duration = (duration + (end.tv_usec - start.tv_usec)) * 1e-6;
 
-    std::cout << "Time taken for classification with " <<  K << " neighbors : " << duration << std::endl;
+    if (my_rank == 0) {
+        std::cout << "Time taken for classification with " <<  K << " neighbors : " << duration << std::endl;
+    }
+    
     return 0;
 
 } //End main
@@ -290,7 +279,7 @@ void read_line(std::string line, float *row, int line_size, char &category) {
  * @param test_data A pointer to an array of Point objects
  * @param train_data A pointer to an array of Point objects.
  */
-void read_data(std::string filename, Point *test_data, Point *train_data, int line_size, int numLines) {
+void read_data(std::string filename, Point *test_data, Point *train_data, int line_size, int numLines, int my_rank) {
 
     std::ifstream inStream(filename);
     std::string line;
@@ -307,8 +296,16 @@ void read_data(std::string filename, Point *test_data, Point *train_data, int li
     //The first line for every CSV file is just a descriptor so we don't need that.
     getline(inStream, line);
     line = "";
-
-    if (inStream.is_open()) {
+    
+    if (numLines != 0) {
+        //Seek Lines the goal is to have each process start relative to its rank.
+        //i.e if it has a rank of 1 and its data set is size 2, and there are 4 lines in the file.
+        //Then it should start at rank * size = 1 * 2 = 2nd line of the file and read till the end.
+        for (int line_num = 0; line_num < (numLines*my_rank); line_num++) {
+            getline(inStream, line, '\n');
+        }
+    }
+    if (inStream.is_open() && line_count < numLines) {
 
         while (getline(inStream, line, '\n')) {
             read_line(line, row, line_size, category);
@@ -410,7 +407,7 @@ void swap_numbers(Euclidean *euclidean_arr, int large_index, int small_index) {
  * @param euclidean_objs The euclidean objects to check the mode for.
  * @return the mode of classification.
  */
-char mode(Euclidean *euclidean_objs) {
+char mode(Euclidean *euclidean_objs, int my_rank) {
 
     int class_values[25] = { 0 };
     int index;
