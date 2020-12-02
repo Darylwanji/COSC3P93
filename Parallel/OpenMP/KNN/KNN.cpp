@@ -101,8 +101,8 @@ int main (int argc, char* argv[]) {
     // time at start of classification
     gettimeofday(&start, NULL);
     std::ios_base::sync_with_stdio(false);
-    #pragma omp parallel for num_threads(thread_count)
     for (int test_index = 0; test_index < test_data_size; test_index++) {
+        #pragma omp parallel for num_threads(thread_count)
         for (int train_index = 0; train_index < train_data_size; train_index++) {
             euclidean_dist_arr[train_index].setValues( test_data[test_index].EuclideanDistance(train_data[train_index], thread_count), &train_data[train_index]);
         }
@@ -125,6 +125,16 @@ int main (int argc, char* argv[]) {
     gettimeofday(&end, NULL);
     duration = (end.tv_sec - start.tv_sec) * 1e6;
     duration = (duration + (end.tv_usec - start.tv_usec)) * 1e-6;
+    
+      // Uncomment this to see calculations using openMP
+      // cout << " openMP calculations \n"; 
+   // system("g++ -o re Caclulation.cpp");
+  //  system("./re");
+    
+    // Uncomment this to see calculations using openMPI
+       // cout << " openMPI calculations \n"; 
+   // system("g++ -o ra calc2.cpp");
+  //  system("./ra");
 
     std::cout << "Time taken for classification with " <<  K << " neighbors : " << duration << std::endl;
     return 0;
