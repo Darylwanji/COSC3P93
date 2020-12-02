@@ -19,6 +19,9 @@ int test_data_size;
 int train_data_size;
 int size_of_line;
 
+int test_remainder;
+int train_remainder;
+
 //Defining the number of K distances to test against.
 //It's defined in the switch case statements below, it takes 10% of the training set.
 int K;
@@ -58,6 +61,7 @@ int main () {
         if (check < 0 || check > 3) {
             std::cerr << "Exiting." << std::endl;
             check = -1;
+            // If an error happened send all processes the input number and exit.
             for (int i = 0; i < comm_sz; i++) {
                 MPI_Send(&check, 1, MPI_INT, i, 0, MPI_COMM_WORLD); 
             }
@@ -65,6 +69,7 @@ int main () {
             return 0;
         }
         else {
+            //Send the input number and assign file_index to the selected value
             for (int i = 0; i < comm_sz; i++) {
                 MPI_Send(&check, 1, MPI_INT, i, 0, MPI_COMM_WORLD); 
             }
@@ -109,11 +114,11 @@ int main () {
             K = 2000;
     }
 
+    int total_k = K;
+
     Point test_data[test_data_size];
     Point train_data[train_data_size];
 
-    int test_remainder;
-    int train_remainder;
     int K_remainder = K % comm_sz; 
     K = K / comm_sz;
     if (my_rank == comm_sz-1) {
@@ -146,8 +151,12 @@ int main () {
         read_data(filenames[file_index], test_data, train_data, size_of_line, numLines, my_rank);
         std::cout << " Done reading data." << std::endl;
     }
-    else {
+    else if (my_rank == comm_sz-1) {
         int numLines = test_data_size + train_data_size + test_remainder + train_remainder;
+        read_data(filenames[file_index], test_data, train_data, size_of_line, numLines, my_rank);
+    }
+    else {
+        int numLines = test_data_size + train_data_size;
         read_data(filenames[file_index], test_data, train_data, size_of_line, numLines, my_rank);
     }
 
@@ -160,9 +169,6 @@ int main () {
 
     // This nested for loop is the pseudo-algorithm described in the report.
     
-    int start_point = my_rank * test_data_size; 
-    int start_point2 = my_rank * train_data_size;
-
     for (int test_index = 0; test_index < (test_data_size + test_remainder); test_index++)
     {
         for (int train_index = 0; train_index < (train_data_size + train_remainder); train_index++)
@@ -181,11 +187,11 @@ int main () {
         char classification = mode(k_selections, my_rank);
         
         test_data[test_index].setClassification(classification);
-        if (my_rank != 0) {
+        if (my_rank != 0 && my_rank != comm_sz-1) {
             int index_to_send = test_index + (test_data_size * my_rank);
             MPI_Send(&classification, 1, MPI_CHAR, 0, index_to_send, MPI_COMM_WORLD);
         }
-        else {
+        else if (my_rank == 0) {
             for (int i = 1; i < comm_sz-1; i++) {
                 MPI_Status status;
                 MPI_Recv(&classification, 1, MPI_CHAR, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
@@ -193,6 +199,9 @@ int main () {
             }
         }
     } // Outer For Loop
+    
+    //This section is for the last process to communicate all of its classified data
+    //back to the original process.
     if (my_rank == 0) {
         int size;
         MPI_Recv(&size, 4, MPI_INT, comm_sz-1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
@@ -310,14 +319,14 @@ void read_data(std::string filename, Point *test_data, Point *train_data, int li
         while (getline(inStream, line, '\n')) {
             read_line(line, row, line_size, category);
 
-            if (line_count < test_data_size) {
+            if (line_count < (test_data_size + test_remainder)) {
 
                 test_data[test_index].setSize(line_size-1);
                 test_data[test_index].setCoords(row);
 
                 test_index++;
             }
-            else if (line_count < (train_data_size+test_data_size)) {
+            else {
 
                 train_data[train_index].setSize(line_size);
                 train_data[train_index].setCoords(row);
