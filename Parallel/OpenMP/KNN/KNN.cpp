@@ -101,8 +101,8 @@ int main (int argc, char* argv[]) {
     // time at start of classification
     gettimeofday(&start, NULL);
     std::ios_base::sync_with_stdio(false);
+    #pragma omp parallel for num_threads(thread_count)
     for (int test_index = 0; test_index < test_data_size; test_index++) {
-        #pragma omp parallel for num_threads(thread_count)
         for (int train_index = 0; train_index < train_data_size; train_index++) {
             euclidean_dist_arr[train_index].setValues( test_data[test_index].EuclideanDistance(train_data[train_index], thread_count), &train_data[train_index]);
         }
