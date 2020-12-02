@@ -26,7 +26,6 @@ int train_remainder;
 //It's defined in the switch case statements below, it takes 10% of the training set.
 int K;
 
-
 //Function Prototypes
 void read_line(std::string line, float *row, int line_size, char &category);
 void read_data(std::string filename, Point *test_data, Point *train_data, int line_size, int numLines, int my_rank);
@@ -116,8 +115,8 @@ int main () {
 
     int total_k = K;
 
-    Point test_data[test_data_size];
-    Point train_data[train_data_size];
+    int full_data = test_data_size;
+    int full_data2 = train_data_size;
 
     int K_remainder = K % comm_sz; 
     K = K / comm_sz;
@@ -143,6 +142,9 @@ int main () {
     // Execution time variables for benchmarking performance
     struct timeval start, end;
     float duration;
+
+    Point test_data[full_data];
+    Point train_data[full_data2];
 
     if (my_rank == 0) {
         //We add 1 more to the line number because there's an extra line the 1st process has to ignore.
@@ -178,7 +180,8 @@ int main () {
                                                              &train_data[train_index]);
         }
 
-        quick_sort(euclidean_dist_arr, 0, (sizeof(euclidean_dist_arr)/sizeof(Euclidean))-1);
+        //quick_sort(euclidean_dist_arr, 0, (sizeof(euclidean_dist_arr)/sizeof(Euclidean))-1);
+        quick_sort(euclidean_dist_arr, 0, test_data_size-1);
         Euclidean k_selections[K];
 
         for (int index = 0; index < K; index++) {
@@ -232,7 +235,7 @@ int main () {
     duration = (duration + (end.tv_usec - start.tv_usec)) * 1e-6;
 
     if (my_rank == 0) {
-        std::cout << "Time taken for classification with " <<  K << " neighbors : " << duration << std::endl;
+        std::cout << "Time taken for classification with " <<  total_k << " neighbors : " << duration << std::endl;
     }
     
     return 0;
